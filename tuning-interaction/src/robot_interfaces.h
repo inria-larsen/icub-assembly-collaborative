@@ -57,9 +57,11 @@ class robot_interfaces
     robot_interfaces(iCub::skinDynLib::BodyPart *bps, int size);
 
     bool init();
+    void setRobotName(std::string robotName);
 
 private:
-    std::vector<iCub::skinDynLib::BodyPart> bodyParts;   // list of the body parts for which the interfaces are open    
+    std::vector<iCub::skinDynLib::BodyPart> bodyParts;   // list of the body parts for which the interfaces are open  
+    std::string robot;  
 };
 
 #endif

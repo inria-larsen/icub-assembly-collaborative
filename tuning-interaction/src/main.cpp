@@ -48,6 +48,10 @@ using namespace std;
 BufferedPort<iCub::skinDynLib::skinContactList> *port_skin_contacts;
 BufferedPort<Vector> *port_left_arm;
 BufferedPort<Vector> *port_right_arm;
+
+BufferedPort<Vector> *port_skin_left_arm;
+BufferedPort<Vector> *port_skin_right_arm;
+
 robot_interfaces *robot;
 bool   stiff;
 
@@ -115,12 +119,17 @@ void closeAll()
 	closePort(port_skin_contacts);
 	closePort(port_left_arm);
 	closePort(port_right_arm);
+	closePort(port_skin_left_arm);
+	closePort(port_skin_right_arm);
+	
 }
 
 
 
 
-
+//=========================================================
+// 			MAIN
+//=========================================================
 int main(int argc, char * argv[])
 {
     ResourceFinder rf;
@@ -146,7 +155,7 @@ int main(int argc, char * argv[])
 	// VARIABLES
 	//--------------------------------------------------------------------------
 
-
+	string robotName;
     bool   left_arm_master;
     double encoders_master [16];
     double encoders_slave  [16];
@@ -161,28 +170,47 @@ int main(int argc, char * argv[])
     bool imitation = true;
     double pressure_left_arm=0;
     double pressure_right_arm=0;
+    
+    string portSkinRightArm;
+    string portSkinLeftArm;
+    string portSkinEvents;
+    
+    bool connectToSkinArmsNotEvents = true;
 
 
 	// INITIALIZATION
 	//--------------------------------------------------------------------------
 
+	robotName="icubGazebo";
     autoconnect = false;
     robot=0;
     left_arm_master=false;
     port_skin_contacts=0;
     stiff = true;
     moduleName = "assemblyTuning";
+    
+    portSkinLeftArm = "/"+robotName+"/skin/left_forearm_comp"; 
+    portSkinRightArm = "/"+robotName+"/skin/left_forearm_comp";   
+    portSkinEvents = "/skinManager/skin_events:o"; //old: "/armSkinDriftComp/skin_events:o"
 
 	robot=new robot_interfaces(LEFT_ARM, RIGHT_ARM);
+	robot->setRobotName(robotName);
 	robot->init();
 
 	port_skin_contacts = new BufferedPort<skinContactList>;
 	port_left_arm = new BufferedPort<Vector>;
 	port_right_arm = new BufferedPort<Vector>;
+	port_skin_left_arm = new BufferedPort<Vector>;
+	port_skin_right_arm = new BufferedPort<Vector>;
+	
 	port_skin_contacts->open("/assemblyTuning/skin_contacts:i");
 	port_left_arm->open("/assemblyTuning/left_arm:o");
 	port_right_arm->open("/assemblyTuning/right_arm:o");
+	port_skin_left_arm->open("/assemblyTuning/skin_left_arm:i");
+	port_skin_right_arm->open("/assemblyTuning/skin_right_arm:i");
 
+
+	//connection to skin events
 	if (autoconnect)
 	{
 		cout<<" +++++ Attempting to connect to /armSkinDriftComp/skin_events:o  .."<<endl;
@@ -203,6 +231,40 @@ int main(int argc, char * argv[])
 				return 1;
 			}
 		}
+	}
+	
+	//connection to tyhe skin of the forearms
+	if(autoconnect)	
+	{
+
+		cout<<" +++++ Attempting to connect to "<<portSkinLeftArm<<".."<<endl;
+		isOk = Network::connect(portSkinLeftArm,"/assemblyTuning/skin_left_arm:i","tcp",false);
+		if(isOk == true)
+		{
+			cout<<" +++++  Connection with the skin is OK"<<endl;
+		}
+		else
+		{
+			cout<<"*** PLEASE RESTART THE ROBOT ***"<<endl;
+			cout<<"Could not connect to the skin - aborting"<<endl;
+			closeAll();
+			return 1;
+		}
+		
+		cout<<" +++++ Attempting to connect to "<<portSkinRightArm<<".."<<endl;
+		isOk = Network::connect(portSkinRightArm,"/assemblyTuning/skin_right_arm:i","tcp",false);
+		if(isOk == true)
+		{
+			cout<<" +++++  Connection with the skin is OK"<<endl;
+		}
+		else
+		{
+			cout<<"*** PLEASE RESTART THE ROBOT ***"<<endl;
+			cout<<"Could not connect to the skin - aborting"<<endl;
+			closeAll();
+			return 1;
+		}
+		
 	}
 
 	robot->iimp[LEFT_ARM]->setImpedance(0,0.2,0.02);
@@ -307,6 +369,10 @@ int main(int argc, char * argv[])
             }
         }
         i_touching_diff=i_touching_left-i_touching_right;
+        
+        //reading skin values from the skin of the forearms
+        Vector *skinright = port_skin_right_arm->read(false);
+        Vector *skinleft = port_skin_left_arm->read(false);
 
         if (abs(i_touching_diff)<5)
         {

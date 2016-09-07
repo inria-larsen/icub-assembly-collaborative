@@ -81,14 +81,17 @@ robot_interfaces::robot_interfaces(iCub::skinDynLib::BodyPart *bps, int size)
         bodyParts[i] = bps[i];
 }
 
+void robot_interfaces::setRobotName(std::string robotName)
+{
+	robot = robotName;
+}
+
 bool robot_interfaces::init()
 {
-    std::string part;
-    std::string robot;
+    std::string part;    
     std::string localPort;
     std::string remotePort;
 
-    robot = "icub";
     BodyPart i;
     bool ok = true;
     for (unsigned int iii=0; iii<bodyParts.size(); iii++)
