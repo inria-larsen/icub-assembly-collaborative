@@ -30,3 +30,4 @@
 
 # Ubuntu temp files
 *~
+*.Rhistory
