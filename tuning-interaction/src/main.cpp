@@ -2,6 +2,8 @@
   * Copyright (C) 2016  INRIA
   * Author: Anthony Voilque, Serena Ivaldi
   * email: serena.ivaldi@inria.fr
+  * 
+  * This program is inspired by the demoForceImitation module, in icub-basic-demos
 */
 
 /*
@@ -213,8 +215,8 @@ int main(int argc, char * argv[])
 	//connection to skin events
 	if (autoconnect)
 	{
-		cout<<" +++++ Attempting to connect to /armSkinDriftComp/skin_events:o  .."<<endl;
-		isOk = Network::connect("/armSkinDriftComp/skin_events:o","/assemblyTuning/skin_contacs:i","tcp",false);
+		cout<<" +++++ Attempting to connect to /skinManager/skin_events:o"  .."<<endl;
+		isOk = Network::connect("/skinManager/skin_events:o","/assemblyTuning/skin_contacs:i","tcp",false);
 		if(isOk == true)
 		{
 			cout<<" +++++  Connection with the skin is OK"<<endl;
@@ -223,7 +225,7 @@ int main(int argc, char * argv[])
 		{
 			cout<<"*** PLEASE CONNECT THE SKIN DRIFT COMPENSATOR ***"<<endl;
 			Time::delay(10.0);
-			isOk = Network::connect("/armSkinDriftComp/skin_events:o","/assemblyTuning/skin_contacs:i","tcp",false);
+			isOk = Network::connect("/skinManager/skin_events:o","/assemblyTuning/skin_contacs:i","tcp",false);
 			if(isOk==false)
 			{
 				cout<<"Could not connect to the skin - aborting"<<endl;
